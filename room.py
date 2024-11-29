@@ -7,6 +7,9 @@ class Room:
     def add_connection(self, space):
         if space not in self.connected_spaces:
             self.connected_spaces.append(space)
+
+    def set_secret_passage(self, room):
+        self.secret_passage = room
     
     def get_connections(self):
         return self.connected_spaces
