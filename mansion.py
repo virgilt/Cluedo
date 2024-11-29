@@ -7,7 +7,7 @@ class Mansion:
         self._initialize_mansion()
     
     def _initialize_mansion(self):
-        room_names = ["Kitche", "Dining Room", "Lounge", "Ballroom", "Hall", "Conservatory", "Billiard Room", "Library", "Study"]
+        room_names = ["Kitchen", "Dining Room", "Lounge", "Ballroom", "Hall", "Conservatory", "Billiard Room", "Library", "Study"]
 
         for name in room_names:
             self.room[name] = Room(name)
