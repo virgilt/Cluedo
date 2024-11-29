@@ -1,5 +1,5 @@
 class Room:
-    def _init_(self, name):
+    def __init__(self, name):
         self.name = name
         self.connected_spaces = []
         self.secret_passage = None
