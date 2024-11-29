@@ -1,4 +1,5 @@
 from room import Room
+from space import Space
 
 class Mansion:
     def _init_(self):
@@ -11,3 +12,8 @@ class Mansion:
 
         for name in room_names:
             self.room[name] = Room(name)
+
+        space_names = [f"Space {i}" for i in range(1, 49)]
+
+        for name in space_names:
+            self.spaces[name] = Space(name)
