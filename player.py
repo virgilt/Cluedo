@@ -1,3 +1,5 @@
+from solution import Solution
+from room import Room
 class Player:
     def __init__(self, name, start_position):
         self.name = name
@@ -11,14 +13,31 @@ class Player:
     def add_card(self, card):
         self.cards.append(card)
 
+    def can_make_suggestion(self):
+        return isinstance(self.current_position, Room)
+
+    def can_make_accusation(self):
+        return self.is_active
+
     def make_suggestion(self, room, character, weapon):
-        return (room, character, weapon)
+        if not self.can_make_suggestion():
+            raise ValueError("Player must be in a room to make a suggestion.")
+        return (room, character, weapon, "suggestion")
     
-    def make_accusation(self, room, character, weapon):
-        return (room, character, weapon)
+    def make_accusation(self, room, character, weapon, solution: Solution):
+        if not self.can_make_accusation():
+            raise ValueError("Eliminated players cannot make an accusation.")
+        if solution == (room, character, weapon):
+            return (room, character, weapon, "accusation", "correct")
+        else:
+            self.eliminate()
+            return (room, character, weapon, "accusation", "incorrect")
     
     def eliminate(self):
         self.is_active = False
+
+    def show_cards(self):
+        return self.cards
 
     def __repr__(self):
         return f"Player({self.name}, Position: {self.current_position}, Active: {self.is_active})"
