@@ -11,5 +11,5 @@ class Room:
     def get_connections(self):
         return self.connected_spaces
     
-    def _repr_(self):
+    def __repr__(self):
         return f"Space({self.name})"
