@@ -14,6 +14,8 @@ class GameManager:
         self.mansion = None
         self.card_deck = []
         self.solution = None
+        self.fig = None
+        self.ax = None
 
     def setup_game(self, player_names):
         self.players = [Player(name, None) for name in player_names]
@@ -34,12 +36,26 @@ class GameManager:
         solution_weapon = random.choice([card for card in self.card_deck if card.card_type == 'weapon'])
         self.solution = Solution(solution_room.name, solution_character.name, solution_weapon.name)
 
-        self.visualize_mansion()
+        self.initialize_visualization()
 
-    def visualize_mansion(self):
+    def initialize_visualization(self):
         rows = len(self.mansion.grid)
         cols = len(self.mansion.grid[0])
-        fig, ax = plt.subplots(figsize=(12, 10))
+        self.fig, self.ax = plt.subplots(figsize=(12, 10))
+
+        self.ax.set_xticks(np.arange(-.5, cols, 1), minor=True)
+        self.ax.set_yticks(np.arange(-.5, rows, 1), minor=True)
+        self.ax.grid(which="minor", color="black", linestyle='-', linewidth=2)
+        self.ax.tick_params(which="minor", size=0)
+        self.ax.invert_yaxis()
+
+        plt.ion()
+        self.update_visualization()
+
+    def update_visualization(self):
+        self.ax.clear()
+        rows = len(self.mansion.grid)
+        cols = len(self.mansion.grid[0])
 
         secret_passage_pairs = [
             ('Study', 'Kitchen', '★'),
@@ -71,20 +87,28 @@ class GameManager:
 
         for (r, c), value in np.ndenumerate(grid):
             if value == "Space":
-                ax.text(c, r, "")
+                self.ax.text(c, r, "")
             else:
-                ax.text(c, r, value, va='center', ha='center', color="black", fontsize=10)
+                self.ax.text(c, r, value, va='center', ha='center', color="black", fontsize=10)
 
-        ax.set_xticks(np.arange(-.5, cols, 1), minor=True)
-        ax.set_yticks(np.arange(-.5, rows, 1), minor=True)
-        ax.grid(which="minor", color="black", linestyle='-', linewidth=2)
-        ax.tick_params(which="minor", size=0)
-        ax.invert_yaxis()
+        self.ax.set_xticks(np.arange(-.5, cols, 1), minor=True)
+        self.ax.set_yticks(np.arange(-.5, rows, 1), minor=True)
+        self.ax.grid(which="minor", color="black", linestyle='-', linewidth=2)
+        self.ax.tick_params(which="minor", size=0)
+        self.ax.invert_yaxis()
 
-        plt.show()
+        self.fig.canvas.draw()
+        plt.pause(0.1)
 
     def roll_dice(self):
         return random.randint(1, 6) + random.randint(1, 6)
+
+    def get_input(self, prompt):
+        user_input = input(prompt).strip().lower()
+        if user_input == 'quit':
+            print("The game has been quit.")
+            exit()
+        return user_input
 
     def start_game(self):
         print("The game has started!")
@@ -97,17 +121,17 @@ class GameManager:
             current_player = self.players[current_player_index]
             if current_player.is_active:
                 print(f"{current_player.name}'s turn:")
-                action = input("Enter 'move', 'suggest', 'accuse', or 'secret': ").strip().lower()
+                action = self.get_input("Enter 'move', 'suggest', 'accuse', 'secret', or 'quit': ")
                 if action == 'move':
                     dice_roll = self.roll_dice()
                     print(f"You rolled a {dice_roll}.")
                     for _ in range(dice_roll):
-                        destination = input("Enter the name of the room or space to move to: ").strip()
+                        destination = self.get_input("Enter the name of the room or space to move to: ")
                         new_position = self.mansion.get_room(destination) or self.mansion.get_space(destination)
                         if new_position:
                             current_player.move(new_position)
                             print(f"{current_player.name} moved to {new_position.name}.")
-                            self.visualize_mansion()
+                            self.update_visualization()
                         else:
                             print("Invalid destination. Try again.")
                             break
@@ -115,14 +139,14 @@ class GameManager:
                     if not current_player.can_make_suggestion():
                         print("You must be in a room to make a suggestion.")
                     else:
-                        character = input("Enter the character: ").strip()
-                        weapon = input("Enter the weapon: ").strip()
+                        character = self.get_input("Enter the character: ")
+                        weapon = self.get_input("Enter the weapon: ")
                         suggestion = current_player.make_suggestion(current_player.current_position.name, character, weapon)
                         print(f"{current_player.name} suggests: {suggestion}")
                 elif action == 'accuse':
-                    room = input("Enter the room: ").strip()
-                    character = input("Enter the character: ").strip()
-                    weapon = input("Enter the weapon: ").strip()
+                    room = self.get_input("Enter the room: ")
+                    character = self.get_input("Enter the character: ")
+                    weapon = self.get_input("Enter the weapon: ")
                     accusation = current_player.make_accusation(room, character, weapon, self.solution)
                     if accusation[-1] == "correct":
                         print(f"{current_player.name} has won the game with the correct accusation!")
@@ -147,7 +171,7 @@ class GameManager:
                                 new_room = self.mansion.get_room(new_room_name)
                                 current_player.move(new_room)
                                 print(f"{current_player.name} used the secret passage to move to {new_room.name}.")
-                                self.visualize_mansion()
+                                self.update_visualization()  # Update the visualization after using the secret passage
                             else:
                                 print("You rolled an odd number. You cannot use the secret passage this turn.")
                         else:
@@ -155,7 +179,7 @@ class GameManager:
                     else:
                         print("You must be in a room to use a secret passage.")
                 else:
-                    print("Invalid action. Please enter 'move', 'suggest', 'accuse', or 'secret'.")
+                    print("Invalid action. Please enter 'move', 'suggest', 'accuse', 'secret', or 'quit'.")
             current_player_index = (current_player_index + 1) % len(self.players)
 
 if __name__ == "__main__":
