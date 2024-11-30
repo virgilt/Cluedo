@@ -1,14 +1,16 @@
 from solution import Solution
 from room import Room
 class Player:
-    def __init__(self, name, start_position):
+    def __init__(self, name, start_position, start_coordinates=None):
         self.name = name
         self.current_position = start_position
+        self.current_coordinates = start_coordinates
         self.cards = []
         self.is_active = True
 
-    def move(self, new_position):
+    def move(self, new_position, coordinates):
         self.current_position = new_position
+        self.current_coordinates = coordinates
 
     def add_card(self, card):
         self.cards.append(card)
