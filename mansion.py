@@ -1,32 +1,36 @@
 from room import Room
 from space import Space
+from card import Card
 
 class Mansion:
-    def __init__(self):
+    def __init__(self, room_cards):
         self.rooms = {}
         self.spaces = {}
         self.grid = []
-        self._initialize_mansion()
+        self._initialize_mansion(room_cards)
     
-    def _initialize_mansion(self):
-        room_names = ["Kitchen", "Dining Room", "Lounge", "Ballroom", "Hall", "Conservatory", "Billiard Room", "Library", "Study", "Start Space"]
-
-        for name in room_names:
-            self.rooms[name] = Room(name)
+    def _initialize_mansion(self, room_cards):
+        # Use room_cards to initialize rooms
+        for card in room_cards:
+            self.rooms[card.name] = Room(card.name)
         
         rows, cols = 10, 12
         self.grid = [[None for _ in range(cols)] for _ in range(rows)]
 
         room_positions = [
-            (0, 0), (0, 7), (0, 11), (4, 0), (8, 0), (9, 5), (9, 11), (0, 3), (6, 11), (9, 2), (9, 9)]
+            (0, 0), (0, 7), (0, 11), (4, 0), (8, 0), (9, 5), (9, 11), (0, 3), (6, 11), (9, 2), (9, 9)
+        ]
 
-        for pos, name in zip(room_positions, room_names[:-1]):
+        # Place rooms on the grid according to specified positions
+        for pos, card in zip(room_positions, room_cards):
             r, c = pos
-            self.grid[r][c] = self.rooms[name]
+            self.grid[r][c] = self.rooms[card.name]
 
+        # Place the "Start Space" in the middle of the grid
         middle_row, middle_col = rows // 2, cols // 2
-        self.grid[middle_row][middle_col] = self.rooms["Start Space"]
+        self.grid[middle_row][middle_col] = self.rooms.get("Start Space", Room("Start Space"))
 
+        # Fill remaining positions with hallway spaces
         for r in range(rows):
             for c in range(cols):
                 if self.grid[r][c] is None:
@@ -34,6 +38,7 @@ class Mansion:
                     self.spaces[space_name] = Space(space_name)
                     self.grid[r][c] = self.spaces[space_name]
 
+        # Establish the connections between spaces (up, down, left, right)
         for r in range(rows):
             for c in range(cols):
                 current_tile = self.grid[r][c]
@@ -47,10 +52,13 @@ class Mansion:
                     if c < cols - 1 and isinstance(self.grid[r][c + 1], Space):
                         current_tile.add_connection(self.grid[r][c + 1])
 
-        self.rooms["Study"].set_secret_passage(self.rooms["Kitchen"])
-        self.rooms["Kitchen"].set_secret_passage(self.rooms["Study"])
-        self.rooms["Conservatory"].set_secret_passage(self.rooms["Lounge"])
-        self.rooms["Lounge"].set_secret_passage(self.rooms["Conservatory"])
+        # Define secret passages for specific rooms
+        if "Study" in self.rooms and "Kitchen" in self.rooms:
+            self.rooms["Study"].set_secret_passage(self.rooms["Kitchen"])
+            self.rooms["Kitchen"].set_secret_passage(self.rooms["Study"])
+        if "Conservatory" in self.rooms and "Lounge" in self.rooms:
+            self.rooms["Conservatory"].set_secret_passage(self.rooms["Lounge"])
+            self.rooms["Lounge"].set_secret_passage(self.rooms["Conservatory"])
 
     def get_room(self, name):
         return self.rooms.get(name, None)
