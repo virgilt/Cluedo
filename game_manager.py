@@ -97,7 +97,7 @@ class GameManager:
             current_player = self.players[current_player_index]
             if current_player.is_active:
                 print(f"{current_player.name}'s turn:")
-                action = input("Enter 'move', 'suggest', or 'accuse': ").strip().lower()
+                action = input("Enter 'move', 'suggest', 'accuse', or 'secret': ").strip().lower()
                 if action == 'move':
                     dice_roll = self.roll_dice()
                     print(f"You rolled a {dice_roll}.")
@@ -129,8 +129,33 @@ class GameManager:
                         game_over = True
                     else:
                         print(f"{current_player.name}'s accusation was incorrect. They are eliminated from the game.")
+                elif action == 'secret':
+                    current_room = current_player.current_position
+                    if isinstance(current_room, Room):
+                        secret_passages = {
+                            'Study': 'Kitchen',
+                            'Kitchen': 'Study',
+                            'Conservatory': 'Lounge',
+                            'Lounge': 'Conservatory'
+                        }
+                        if current_room.name in secret_passages:
+                            print(f"There is a secret passage to the {secret_passages[current_room.name]}.")
+                            dice_roll = self.roll_dice()
+                            print(f"You rolled a {dice_roll}.")
+                            if dice_roll % 2 == 0:
+                                new_room_name = secret_passages[current_room.name]
+                                new_room = self.mansion.get_room(new_room_name)
+                                current_player.move(new_room)
+                                print(f"{current_player.name} used the secret passage to move to {new_room.name}.")
+                                self.visualize_mansion()
+                            else:
+                                print("You rolled an odd number. You cannot use the secret passage this turn.")
+                        else:
+                            print("There is no secret passage in this room.")
+                    else:
+                        print("You must be in a room to use a secret passage.")
                 else:
-                    print("Invalid action. Please enter 'move', 'suggest', or 'accuse'.")
+                    print("Invalid action. Please enter 'move', 'suggest', 'accuse', or 'secret'.")
             current_player_index = (current_player_index + 1) % len(self.players)
 
 if __name__ == "__main__":
