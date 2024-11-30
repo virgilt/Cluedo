@@ -10,7 +10,6 @@ class Mansion:
         self._initialize_mansion(room_cards)
     
     def _initialize_mansion(self, room_cards):
-        # Use room_cards to initialize rooms
         for card in room_cards:
             self.rooms[card.name] = Room(card.name)
         
@@ -21,16 +20,13 @@ class Mansion:
             (0, 0), (0, 7), (0, 11), (4, 0), (8, 0), (9, 5), (9, 11), (0, 3), (6, 11), (9, 2), (9, 9)
         ]
 
-        # Place rooms on the grid according to specified positions
         for pos, card in zip(room_positions, room_cards):
             r, c = pos
             self.grid[r][c] = self.rooms[card.name]
 
-        # Place the "Start Space" in the middle of the grid
         middle_row, middle_col = rows // 2, cols // 2
         self.grid[middle_row][middle_col] = self.rooms.get("Start Space", Room("Start Space"))
 
-        # Fill remaining positions with hallway spaces
         for r in range(rows):
             for c in range(cols):
                 if self.grid[r][c] is None:
@@ -38,7 +34,6 @@ class Mansion:
                     self.spaces[space_name] = Space(space_name)
                     self.grid[r][c] = self.spaces[space_name]
 
-        # Establish the connections between spaces (up, down, left, right)
         for r in range(rows):
             for c in range(cols):
                 current_tile = self.grid[r][c]
@@ -52,7 +47,6 @@ class Mansion:
                     if c < cols - 1 and isinstance(self.grid[r][c + 1], Space):
                         current_tile.add_connection(self.grid[r][c + 1])
 
-        # Define secret passages for specific rooms
         if "Study" in self.rooms and "Kitchen" in self.rooms:
             self.rooms["Study"].set_secret_passage(self.rooms["Kitchen"])
             self.rooms["Kitchen"].set_secret_passage(self.rooms["Study"])
