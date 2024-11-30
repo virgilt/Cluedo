@@ -75,6 +75,9 @@ class GameManager:
 
         plt.show()
 
+    def roll_dice(self):
+        return random.randint(1, 6) + random.randint(1, 6)
+
     def start_game(self):
         print("The game has started!")
         for player in self.players:
@@ -88,13 +91,17 @@ class GameManager:
                 print(f"{current_player.name}'s turn:")
                 action = input("Enter 'move', 'suggest', or 'accuse': ").strip().lower()
                 if action == 'move':
-                    destination = input("Enter the name of the room or space to move to: ").strip()
-                    new_position = self.mansion.get_room(destination) or self.mansion.get_space(destination)
-                    if new_position:
-                        current_player.move(new_position)
-                        print(f"{current_player.name} moved to {new_position.name}.")
-                    else:
-                        print("Invalid destination.")
+                    dice_roll = self.roll_dice()
+                    print(f"You rolled a {dice_roll}.")
+                    for _ in range(dice_roll):
+                        destination = input("Enter the name of the room or space to move to: ").strip()
+                        new_position = self.mansion.get_room(destination) or self.mansion.get_space(destination)
+                        if new_position:
+                            current_player.move(new_position)
+                            print(f"{current_player.name} moved to {new_position.name}.")
+                        else:
+                            print("Invalid destination. Try again.")
+                            break
                 elif action == 'suggest':
                     if not current_player.can_make_suggestion():
                         print("You must be in a room to make a suggestion.")
