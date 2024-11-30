@@ -10,7 +10,6 @@ import numpy as np
 
 class GameManager:
     def __init__(self):
-        # Initialize game attributes
         self.players = []
         self.mansion = None
         self.card_deck = []
@@ -20,39 +19,30 @@ class GameManager:
         self.secret_passage_symbols_added = False
 
     def setup_game(self, player_names):
-        # Create players
         self.players = [Player(name, None) for name in player_names]
 
-        # Create the card deck and shuffle
         self.card_deck = create_card_deck()
 
-        # Extract room cards for the mansion setup
         room_cards = [card for card in self.card_deck if card.card_type == 'room']
         
-        # Initialize the mansion layout using room cards
         self.mansion = Mansion(room_cards)
 
-        # Distribute the remaining cards among players
         non_room_cards = [card for card in self.card_deck if card.card_type != 'room']
         distribute_cards(self.players, non_room_cards)
 
-        # Set the start position for each player to the "Start Space"
         start_space = self.mansion.get_room("Start Space")
         for player in self.players:
             if start_space:
                 player.move(start_space)
 
-        # Generate the solution for the game
         solution_room = random.choice(room_cards)
         solution_character = random.choice([card for card in self.card_deck if card.card_type == 'character'])
         solution_weapon = random.choice([card for card in self.card_deck if card.card_type == 'weapon'])
         self.solution = Solution(solution_room.name, solution_character.name, solution_weapon.name)
 
-        # Initialize the visualization
         self.initialize_visualization()
 
     def initialize_visualization(self):
-        # Initialize the mansion layout visualization using matplotlib
         rows = len(self.mansion.grid)
         cols = len(self.mansion.grid[0])
         self.fig, self.ax = plt.subplots(figsize=(12, 10))
@@ -67,23 +57,20 @@ class GameManager:
         self.ax.tick_params(which="minor", size=0)
         self.ax.invert_yaxis()
 
-        plt.ion()  # Turn on interactive mode
+        plt.ion()
         self.update_visualization()
 
     def update_visualization(self):
-        # Update the mansion layout visualization
         rows = len(self.mansion.grid)
         cols = len(self.mansion.grid[0])
         grid = np.full((rows, cols), "", dtype=object)
         self.ax.clear()
 
-        # Define secret passages
         secret_passage_pairs = [
             ('Study', 'Kitchen', '★'),
             ('Conservatory', 'Lounge', '✦')
         ]
 
-        # Add secret passage symbols to room names only once
         if not self.secret_passage_symbols_added:
             for room1_name, room2_name, symbol in secret_passage_pairs:
                 if room1_name in self.mansion.rooms and room2_name in self.mansion.rooms:
@@ -91,7 +78,6 @@ class GameManager:
                     self.mansion.rooms[room2_name].name += f" {symbol}"
             self.secret_passage_symbols_added = True
 
-        # Create a grid representation
         for r in range(rows):
             for c in range(cols):
                 tile = self.mansion.grid[r][c]
@@ -100,14 +86,12 @@ class GameManager:
                 elif isinstance(tile, Space):
                     grid[r][c] = ""
 
-        # Add player positions to the grid
         for player in self.players:
             position = player.current_position
             if position:
                 r, c = self.get_coordinates(position)
                 grid[r][c] += f" ({player.name})"
 
-        # Create the grid visualization
         for (r, c), value in np.ndenumerate(grid):
             if value:
                 self.ax.text(c, r, value, va='center', ha='center', color="black", fontsize=10)
@@ -122,16 +106,13 @@ class GameManager:
         self.ax.tick_params(which="minor", size=0)
         self.ax.invert_yaxis()
 
-        # Draw the updated visualization
         self.fig.canvas.draw()
         plt.pause(0.1)
 
     def roll_dice(self):
-        # Roll two six-sided dice
         return random.randint(1, 6) + random.randint(1, 6)
 
     def get_input(self, prompt):
-        # Helper function to get user input and check for 'quit'
         user_input = input(prompt).strip().lower()
         if user_input == 'quit':
             print("The game has been quit.")
@@ -203,17 +184,41 @@ class GameManager:
 
                     if not valid_move:
                         continue  # Keep the turn for the current player if no valid move was made
+
                 elif action == 'suggest':
                     # Print instructions for suggesting
                     print("To suggest, enter the name of the character and weapon. Example: 'Professor Plum', 'Candlestick'.")
                     if not current_player.can_make_suggestion():
                         print("You must be in a room to make a suggestion.")
-                        continue
                     else:
+                        # Show available options for character and weapon
+                        available_characters = [card.name for card in self.card_deck if card.card_type == 'character' and card not in current_player.cards]
+                        available_weapons = [card.name for card in self.card_deck if card.card_type == 'weapon' and card not in current_player.cards]
+                        print(f"Available characters: {', '.join(available_characters)}")
+                        print(f"Available weapons: {', '.join(available_weapons)}")
+
                         character = self.get_input("Enter the character: ")
                         weapon = self.get_input("Enter the weapon: ")
                         suggestion = current_player.make_suggestion(current_player.current_position.name, character, weapon)
                         print(f"{current_player.name} suggests: {suggestion}")
+
+                        # Logic for other players to disprove the suggestion
+                        disproved = False
+                        for other_player in self.players:
+                            if other_player != current_player:
+                                for card in other_player.cards:
+                                    if card.name.lower() in [character, weapon, current_player.current_position.name]:
+                                        print(f"{other_player.name} can disprove the suggestion with the card: {card.name}")
+                                        disproved = True
+                                        current_player.add_card(card)
+                                        print(f"{current_player.name} now has the card: {card.name}")
+                                        break
+                                if disproved:
+                                    break
+
+                        if not disproved:
+                            print("No one can disprove the suggestion.")
+
                 elif action == 'accuse':
                     # Print instructions for accusing
                     print("To accuse, enter the name of the room, character, and weapon. Example: 'Kitchen', 'Professor Plum', 'Candlestick'.")
@@ -226,6 +231,7 @@ class GameManager:
                         game_over = True
                     else:
                         print(f"{current_player.name}'s accusation was incorrect. They are eliminated from the game.")
+
                 elif action == 'secret':
                     # Print instructions for using a secret passage
                     print("To use a secret passage, you must be in a room with a secret passage and roll an even number.")
@@ -253,16 +259,17 @@ class GameManager:
                                 print("You rolled an odd number. You cannot use the secret passage this turn.")
                         else:
                             print("There is no secret passage in this room.")
-                            continue
+                            continue  # Keep the turn for the current player
                     else:
                         print("You must be in a room to use a secret passage.")
-                        continue
+                        continue  # Keep the turn for the current player
+
                 else:
                     print("Invalid action. Please enter 'move', 'suggest', 'accuse', 'secret', or 'quit'.")
+
             current_player_index = (current_player_index + 1) % len(self.players)
 
     def get_coordinates(self, position):
-        # Get the coordinates of a given position in the mansion grid
         if position is None:
             raise ValueError("The provided position is None. Please ensure the player is properly initialized and moved.")
         for r in range(len(self.mansion.grid)):
