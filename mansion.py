@@ -1,6 +1,6 @@
 from room import Room
 from space import Space
-from card import Card
+from card_setup import Card
 
 class Mansion:
     def __init__(self, room_cards):
