@@ -61,6 +61,14 @@ class GameManager:
                 elif isinstance(tile, Space):
                     grid[r][c] = "Space"
 
+        for player in self.players:
+            position = player.current_position
+            if position:
+                for r in range(rows):
+                    for c in range(cols):
+                        if self.mansion.grid[r][c] == position:
+                            grid[r][c] += f" ({player.name})"
+
         for (r, c), value in np.ndenumerate(grid):
             if value == "Space":
                 ax.text(c, r, "")
@@ -99,6 +107,7 @@ class GameManager:
                         if new_position:
                             current_player.move(new_position)
                             print(f"{current_player.name} moved to {new_position.name}.")
+                            self.visualize_mansion()
                         else:
                             print("Invalid destination. Try again.")
                             break
