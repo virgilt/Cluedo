@@ -77,11 +77,7 @@ During their turn, each player has several possible actions available:
 
 **1. Move**
 
-**Rolling the Dice**: To move, type
-    ```sh
-    move
-    ```
-in the command line when prompted. This will cause the the player to roll two dice, and the total number rolled determines how far the player can move on the grid.
+**Rolling the Dice**: To move, type `move` in the command line when prompted. This will cause the the player to roll two dice, and the total number rolled determines how far the player can move on the grid.
 
 **Movement Rules**: The player can move **up**, **down**, **left** or **right** across the grid, but diagonal movement is not allowed. The movement must not exceed the dice roll value. Movement distance is calculated based on the Manhattan distance between the starting point and the target destination.
 
@@ -89,11 +85,7 @@ in the command line when prompted. This will cause the the player to roll two di
 
 **2. Suggest**
 
-**Making a Suggestion**: A player can make a suggestion only when they are inside a Room, by typing
-    ```sh
-    suggest
-    ```
-in the command line when prompted.
+**Making a Suggestion**: A player can make a suggestion only when they are inside a Room, by typing `suggest` in the command line when prompted.
 
 **Suggestion Content**: The player suggests the name of a character, weapon, and the room they are currently in. This action aims to gather clues from other players.
 
@@ -101,11 +93,7 @@ in the command line when prompted.
 
 **3. Accuse**
 
-**Making an Accusation**: An accusation can be made at any point during a player's turn, by typeing
-    ```sh
-    accuse
-    ```
-in the command line when prompted. The player must name the room, character, and weapon they believe is the solution.
+**Making an Accusation**: An accusation can be made at any point during a player's turn, by typeing `accuse` in the command line when prompted. The player must name the room, character, and weapon they believe is the solution.
 
 **Winning the Game**: If the accusation matches the actual solution, the player wins the game.
 
@@ -113,21 +101,13 @@ in the command line when prompted. The player must name the room, character, and
 
 **4. Secret Passage**
 
-**Using a Secret Passage**: If a player is in a Room with a secret passage, they can opt to use it to move to the connected room. To use this action the player must type
-    ```sh
-    secret
-    ```
-when prompted on their turn.
+**Using a Secret Passage**: If a player is in a Room with a secret passage, they can opt to use it to move to the connected room. To use this action the player must type `secret` when prompted on their turn.
 
 **Conditions**: The player must roll an even number to use the secret passage. If an odd number is rolled, they cannot use the passage that turn, and play continues with the next player.
 
 **5. Quit**
 
-**Quitting the Game**: You may choose to quit the game at any time by typing
-    ```sh
-    quit
-    ```
-in the command line.
+**Quitting the Game**: You may choose to quit the game at any time by typing `quit` in the command line.
 
 ### Game Flow
 
