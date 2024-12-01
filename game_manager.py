@@ -161,38 +161,38 @@ class GameManager:
                     print(f"You rolled a {dice_roll}.")
                     current_position = current_player.current_position
                     valid_move = False
+                    while not valid_move:
+                        try:
+                            destination = self.get_input("Enter the coordinates of the next space to move to (e.g., '1, 1'): ")
+                            print(f"Debug: Raw input received for destination: {destination}")
+                            destination = tuple(map(int, destination.split(',')))
+                            print(f"Debug: Parsed destination coordinates: {destination}")
+                            r, c = destination
+                            if 0 <= r < len(self.mansion.grid) and 0 <= c < len(self.mansion.grid[0]):
+                                new_position = self.mansion.grid[r][c]
+                                print(f"Debug: New position object at ({r}, {c}): {new_position}")
+                                if new_position and isinstance(new_position, (Room, Space)):
+                                    # Update: Use coordinates directly
+                                    current_r, current_c = self.get_coordinates(current_position)
+                                    movement_distance = abs(current_r - r) + abs(current_c - c)
 
-                    try:
-                        destination = self.get_input("Enter the coordinates of the next space to move to (e.g., '1, 1'): ")
-                        print(f"Debug: Raw input received for destination: {destination}")
-                        destination = tuple(map(int, destination.split(',')))
-                        print(f"Debug: Parsed destination coordinates: {destination}")
-                        r, c = destination
-                        if 0 <= r < len(self.mansion.grid) and 0 <= c < len(self.mansion.grid[0]):
-                            new_position = self.mansion.grid[r][c]
-                            print(f"Debug: New position object at ({r}, {c}): {new_position}")
-                            if new_position and isinstance(new_position, (Room, Space)):
-                                # Update: Use coordinates directly
-                                current_r, current_c = self.get_coordinates(current_position)
-                                movement_distance = abs(current_r - r) + abs(current_c - c)
+                                    if movement_distance <= dice_roll:
 
-                                if movement_distance <= dice_roll:
-
-                                    current_player.move(new_position, (r, c))
-                                    print(f"{current_player.name} moved to {new_position.name}.")
-                                    self.update_visualization()  # Update the visualization after each move
-                                    valid_move = True
+                                        current_player.move(new_position, (r, c))
+                                        print(f"{current_player.name} moved to {new_position.name}.")
+                                        self.update_visualization()  # Update the visualization after each move
+                                        valid_move = True
+                                    else:
+                                        print(f"Invalid move. You can only move up to {dice_roll} spaces, but your intended move is {movement_distance} spaces.")
                                 else:
-                                    print(f"Invalid move. You can only move up to {dice_roll} spaces, but your intended move is {movement_distance} spaces.")
+                                    print("Invalid destination. Try again.")
                             else:
-                                print("Invalid destination. Try again.")
-                        else:
-                            print("Coordinates out of range. Try again.")
-                    except (ValueError, IndexError):
-                        print("Invalid format. Please enter the coordinates as 'row, column'. Example: '1, 1'.")
+                                print("Coordinates out of range. Try again.")
+                        except (ValueError, IndexError):
+                            print("Invalid format. Please enter the coordinates as 'row, column'. Example: '1, 1'.")
 
-                    if not valid_move:
-                        continue  # Keep the turn for the current player if no valid move was made
+                        if not valid_move:
+                            continue  # Keep the turn for the current player if no valid move was made
 
                 elif action == 'suggest':
                     # Print instructions for suggesting
