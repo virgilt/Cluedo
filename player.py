@@ -29,7 +29,7 @@ class Player:
     def make_accusation(self, room, character, weapon, solution: Solution):
         if not self.can_make_accusation():
             raise ValueError("Eliminated players cannot make an accusation.")
-        if solution == (room, character, weapon):
+        if solution.room.lower() == room and solution.weapon.lower() == weapon and solution.character.lower() == character:
             return (room, character, weapon, "accusation", "correct")
         else:
             self.eliminate()

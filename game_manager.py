@@ -241,6 +241,7 @@ class GameManager:
                     character = self.get_input("Enter the character: ")
                     weapon = self.get_input("Enter the weapon: ")
                     accusation = current_player.make_accusation(room, character, weapon, self.solution)
+                    print(accusation)
                     if accusation[-1] == "correct":
                         print(f"{current_player.name} has won the game with the correct accusation!")
                         game_over = True
