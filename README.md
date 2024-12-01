@@ -75,7 +75,7 @@ Players move around the game board, enter rooms, and make suggestions to gather 
 
 During their turn, each player has several possible actions available:
 
-1. Move
+**1. Move**
 
 **Rolling the Dice**: To move, type
     ```sh
@@ -87,7 +87,7 @@ in the command line when prompted. This will cause the the player to roll two di
 
 **Valid Destinations**: Players can move to any available Room or Space on the mansion grid, provided it is within the movement range rolled. Players must specify the coordinates of the desired location.
 
-2. Suggest
+**2. Suggest**
 
 **Making a Suggestion**: A player can make a suggestion only when they are inside a Room, by typing
     ```sh
@@ -99,7 +99,7 @@ in the command line when prompted.
 
 **Disproving a Suggestion**: After a suggestion is made, other players can disprove the suggestion if they hold cards that match any of the suggested items (character, weapon, or room). The first player able to disprove must show one card to the suggesting player. This disprove action is performed automatically within the game.
 
-3. Accuse
+**3. Accuse**
 
 **Making an Accusation**: An accusation can be made at any point during a player's turn, by typeing
     ```sh
@@ -111,7 +111,7 @@ in the command line when prompted. The player must name the room, character, and
 
 **Incorrect Accusation**: If the accusation is incorrect, the player is eliminated from the game and can no longer participate. Eliminated players cannot make suggestions or accusations but may still show cards if needed to disprove suggestions from active players.
 
-4. Secret Passage
+**4. Secret Passage**
 
 **Using a Secret Passage**: If a player is in a Room with a secret passage, they can opt to use it to move to the connected room. To use this action the player must type
     ```sh
@@ -121,7 +121,7 @@ when prompted on their turn.
 
 **Conditions**: The player must roll an even number to use the secret passage. If an odd number is rolled, they cannot use the passage that turn, and play continues with the next player.
 
-5. Quit
+**5. Quit**
 
 **Quitting the Game**: You may choose to quit the game at any time by typing
     ```sh
