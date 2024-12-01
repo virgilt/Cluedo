@@ -13,6 +13,7 @@ class GameManager:
         self.players = []
         self.mansion = None
         self.card_deck = []
+        self.available_choices = None
         self.solution = None
         self.fig = None
         self.ax = None
@@ -23,22 +24,33 @@ class GameManager:
 
         self.card_deck = create_card_deck()
 
+        self.available_choices = self.card_deck.copy()
+
+        solution_room = random.choice([card for card in self.card_deck if card.card_type == 'room'])
+        solution_character = random.choice([card for card in self.card_deck if card.card_type == 'character'])
+        solution_weapon = random.choice([card for card in self.card_deck if card.card_type == 'weapon'])
+        self.solution = Solution(solution_room.name, solution_character.name, solution_weapon.name)
+        print(solution_room.name)
+        print(solution_character.name)
+        print(solution_weapon.name)
+        print(f"Solution: {self.solution}")
+
         room_cards = [card for card in self.card_deck if card.card_type == 'room']
         
         self.mansion = Mansion(room_cards)
 
-        non_room_cards = [card for card in self.card_deck if card.card_type != 'room']
-        distribute_cards(self.players, non_room_cards)
+        self.card_deck.remove(solution_room)
+        self.card_deck.remove(solution_character)
+        self.card_deck.remove(solution_weapon)
+
+        self.card_deck = [card for card in self.card_deck if card not in (solution_room, solution_character, solution_weapon)]
+
+        distribute_cards(self.players, self.card_deck)
 
         start_space = self.mansion.get_room("Start Space")
         for player in self.players:
             if start_space:
                 player.move(start_space)
-
-        solution_room = random.choice(room_cards)
-        solution_character = random.choice([card for card in self.card_deck if card.card_type == 'character'])
-        solution_weapon = random.choice([card for card in self.card_deck if card.card_type == 'weapon'])
-        self.solution = Solution(solution_room.name, solution_character.name, solution_weapon.name)
 
         self.initialize_visualization()
 
@@ -120,12 +132,10 @@ class GameManager:
         return user_input
 
     def start_game(self):
-        # Main game loop
         print("The game has started!")
         for player in self.players:
             print(f"{player.name}'s cards: {player.show_cards()}")
 
-        # Set the start position for each player to the "Start Space"
         start_space = (5, 6)
         start_position = self.mansion.grid[start_space[0]][start_space[1]]
         for player in self.players:
@@ -133,18 +143,6 @@ class GameManager:
                 player.move(start_position, start_space)
                 player.current_position = start_position
 
-        # Debug: Print the mansion grid to verify initialization
-        print("Mansion grid initialization:")
-        for r in range(len(self.mansion.grid)):
-            for c in range(len(self.mansion.grid[0])):
-                if isinstance(self.mansion.grid[r][c], Room):
-                    print(f"Room at ({r}, {c}): {self.mansion.grid[r][c].name}")
-                elif isinstance(self.mansion.grid[r][c], Space):
-                    print(f"Space at ({r}, {c}): {self.mansion.grid[r][c].name}")
-                else:
-                    print(f"None at ({r}, {c})")
-
-        # Example interactive gameplay loop
         self.update_visualization()
         game_over = False
         current_player_index = 0
@@ -154,9 +152,7 @@ class GameManager:
                 print(f"{current_player.name}'s turn:")
                 action = self.get_input("Enter 'move', 'suggest', 'accuse', 'secret', or 'quit': ")
                 if action == 'move':
-                    # Print instructions for moving
                     print("To move, enter the grid coordinates in the format (row, column). Example: '1, 1'.")
-                    # Roll the dice to determine movement distance
                     dice_roll = self.roll_dice()
                     print(f"You rolled a {dice_roll}.")
                     current_position = current_player.current_position
@@ -172,7 +168,6 @@ class GameManager:
                                 new_position = self.mansion.grid[r][c]
                                 print(f"Debug: New position object at ({r}, {c}): {new_position}")
                                 if new_position and isinstance(new_position, (Room, Space)):
-                                    # Update: Use coordinates directly
                                     current_r, current_c = self.get_coordinates(current_position)
                                     movement_distance = abs(current_r - r) + abs(current_c - c)
 
@@ -180,7 +175,7 @@ class GameManager:
 
                                         current_player.move(new_position, (r, c))
                                         print(f"{current_player.name} moved to {new_position.name}.")
-                                        self.update_visualization()  # Update the visualization after each move
+                                        self.update_visualization()
                                         valid_move = True
                                     else:
                                         print(f"Invalid move. You can only move up to {dice_roll} spaces, but your intended move is {movement_distance} spaces.")
@@ -192,26 +187,38 @@ class GameManager:
                             print("Invalid format. Please enter the coordinates as 'row, column'. Example: '1, 1'.")
 
                         if not valid_move:
-                            continue  # Keep the turn for the current player if no valid move was made
+                            continue
 
                 elif action == 'suggest':
-                    # Print instructions for suggesting
                     print("To suggest, enter the name of the character and weapon. Example: 'Professor Plum', 'Candlestick'.")
                     if not current_player.can_make_suggestion():
                         print("You must be in a room to make a suggestion.")
+                        continue
                     else:
-                        # Show available options for character and weapon
-                        available_characters = [card.name for card in self.card_deck if card.card_type == 'character' and card not in current_player.cards]
-                        available_weapons = [card.name for card in self.card_deck if card.card_type == 'weapon' and card not in current_player.cards]
+                        print(f"Room: {player.current_position.name}")
+                        available_characters = [card.name for card in self.available_choices if card.card_type == 'character' and card not in current_player.cards]
+                        available_weapons = [card.name for card in self.available_choices if card.card_type == 'weapon' and card not in current_player.cards]
                         print(f"Available characters: {', '.join(available_characters)}")
                         print(f"Available weapons: {', '.join(available_weapons)}")
 
-                        character = self.get_input("Enter the character: ")
-                        weapon = self.get_input("Enter the weapon: ")
+                        lowercase_characters = [character.lower() for character in available_characters]
+                        lowercase_weapons = [weapons.lower() for weapons in available_weapons]
+
+                        character = None
+                        while character not in lowercase_characters:
+                            character = self.get_input("Enter the character: ")
+                            if character not in lowercase_characters:
+                                print(f"You must enter a character that is available: {', '.join(available_characters)}")
+
+                        weapon = None
+                        while weapon not in lowercase_weapons:
+                            weapon = self.get_input("Enter the weapon: ")
+                            if weapon not in lowercase_weapons:
+                                print(f"You must enter a weapon that is available: {', '.join(available_weapons)}")
+
                         suggestion = current_player.make_suggestion(current_player.current_position.name, character, weapon)
                         print(f"{current_player.name} suggests: {suggestion}")
 
-                        # Logic for other players to disprove the suggestion
                         disproved = False
                         for other_player in self.players:
                             if other_player != current_player:
@@ -229,7 +236,6 @@ class GameManager:
                             print("No one can disprove the suggestion.")
 
                 elif action == 'accuse':
-                    # Print instructions for accusing
                     print("To accuse, enter the name of the room, character, and weapon. Example: 'Kitchen', 'Professor Plum', 'Candlestick'.")
                     room = self.get_input("Enter the room: ")
                     character = self.get_input("Enter the character: ")
@@ -242,9 +248,7 @@ class GameManager:
                         print(f"{current_player.name}'s accusation was incorrect. They are eliminated from the game.")
 
                 elif action == 'secret':
-                    # Print instructions for using a secret passage
                     print("To use a secret passage, you must be in a room with a secret passage and roll an even number.")
-                    # Check if the player is in a room with a secret passage
                     current_room = current_player.current_position
                     if isinstance(current_room, Room):
                         secret_passages = {
@@ -255,7 +259,6 @@ class GameManager:
                         }
                         if current_room.name.split()[0] in secret_passages:
                             print(f"There is a secret passage to the {secret_passages[current_room.name.split()[0]]}.")
-                            # Roll dice to determine if the player can use the secret passage
                             dice_roll = self.roll_dice()
                             print(f"You rolled a {dice_roll}.")
                             if dice_roll % 2 == 0:
@@ -263,15 +266,15 @@ class GameManager:
                                 new_room = self.mansion.get_room(new_room_name)
                                 current_player.move(new_room, self.get_coordinates(new_room))
                                 print(f"{current_player.name} used the secret passage to move to {new_room.name}.")
-                                self.update_visualization()  # Update the visualization after using the secret passage
+                                self.update_visualization()
                             else:
                                 print("You rolled an odd number. You cannot use the secret passage this turn.")
                         else:
                             print("There is no secret passage in this room.")
-                            continue  # Keep the turn for the current player
+                            continue
                     else:
                         print("You must be in a room to use a secret passage.")
-                        continue  # Keep the turn for the current player
+                        continue
 
                 else:
                     print("Invalid action. Please enter 'move', 'suggest', 'accuse', 'secret', or 'quit'.")
