@@ -94,7 +94,7 @@ class GameManager:
 
         for (r, c), value in np.ndenumerate(grid):
             if value:
-                self.ax.text(c, r, value, va='center', ha='center', color="black", fontsize=10)
+                self.ax.text(c, r, value, va='center', ha='center', color="black", fontsize=8)
 
         self.ax.set_xticks(np.arange(0, cols, 1))
         self.ax.set_yticks(np.arange(0, rows, 1))
@@ -126,11 +126,12 @@ class GameManager:
             print(f"{player.name}'s cards: {player.show_cards()}")
 
         # Set the start position for each player to the "Start Space"
-        start_space = self.mansion.get_room("Start Space")
+        start_space = (5, 6)
+        start_position = self.mansion.grid[start_space[0]][start_space[1]]
         for player in self.players:
-            if start_space:
-                player.move(start_space, (self.mansion.grid.index(start_space), 0))
-                player.current_position = start_space  # Ensure current_position is properly initialized
+            if start_position:
+                player.move(start_position, start_space)
+                player.current_position = start_position
 
         # Debug: Print the mansion grid to verify initialization
         print("Mansion grid initialization:")
@@ -144,6 +145,7 @@ class GameManager:
                     print(f"None at ({r}, {c})")
 
         # Example interactive gameplay loop
+        self.update_visualization()
         game_over = False
         current_player_index = 0
         while not game_over:
@@ -171,10 +173,17 @@ class GameManager:
                             print(f"Debug: New position object at ({r}, {c}): {new_position}")
                             if new_position and isinstance(new_position, (Room, Space)):
                                 # Update: Use coordinates directly
-                                current_player.move(new_position, (r, c))
-                                print(f"{current_player.name} moved to {new_position.name}.")
-                                self.update_visualization()  # Update the visualization after each move
-                                valid_move = True
+                                current_r, current_c = self.get_coordinates(current_position)
+                                movement_distance = abs(current_r - r) + abs(current_c - c)
+
+                                if movement_distance <= dice_roll:
+
+                                    current_player.move(new_position, (r, c))
+                                    print(f"{current_player.name} moved to {new_position.name}.")
+                                    self.update_visualization()  # Update the visualization after each move
+                                    valid_move = True
+                                else:
+                                    print(f"Invalid move. You can only move up to {dice_roll} spaces, but your intended move is {movement_distance} spaces.")
                             else:
                                 print("Invalid destination. Try again.")
                         else:
@@ -266,6 +275,7 @@ class GameManager:
 
                 else:
                     print("Invalid action. Please enter 'move', 'suggest', 'accuse', 'secret', or 'quit'.")
+                    continue
 
             current_player_index = (current_player_index + 1) % len(self.players)
 
