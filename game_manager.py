@@ -18,6 +18,7 @@ class GameManager:
         self.fig = None
         self.ax = None
         self.secret_passage_symbols_added = False
+        self.num_players_elim = 0
 
     def setup_game(self, player_names):
         self.players = [Player(name, None) for name in player_names]
@@ -30,10 +31,7 @@ class GameManager:
         solution_character = random.choice([card for card in self.card_deck if card.card_type == 'character'])
         solution_weapon = random.choice([card for card in self.card_deck if card.card_type == 'weapon'])
         self.solution = Solution(solution_room.name, solution_character.name, solution_weapon.name)
-        print(solution_room.name)
-        print(solution_character.name)
-        print(solution_weapon.name)
-        print(f"Solution: {self.solution}")
+        # print(f"Solution: {self.solution}")
 
         room_cards = [card for card in self.card_deck if card.card_type == 'room']
         
@@ -160,13 +158,13 @@ class GameManager:
                     while not valid_move:
                         try:
                             destination = self.get_input("Enter the coordinates of the next space to move to (e.g., '1, 1'): ")
-                            print(f"Debug: Raw input received for destination: {destination}")
+                            # print(f"Debug: Raw input received for destination: {destination}")
                             destination = tuple(map(int, destination.split(',')))
-                            print(f"Debug: Parsed destination coordinates: {destination}")
+                            # print(f"Debug: Parsed destination coordinates: {destination}")
                             r, c = destination
                             if 0 <= r < len(self.mansion.grid) and 0 <= c < len(self.mansion.grid[0]):
                                 new_position = self.mansion.grid[r][c]
-                                print(f"Debug: New position object at ({r}, {c}): {new_position}")
+                                # print(f"Debug: New position object at ({r}, {c}): {new_position}")
                                 if new_position and isinstance(new_position, (Room, Space)):
                                     current_r, current_c = self.get_coordinates(current_position)
                                     movement_distance = abs(current_r - r) + abs(current_c - c)
@@ -237,17 +235,55 @@ class GameManager:
 
                 elif action == 'accuse':
                     print("To accuse, enter the name of the room, character, and weapon. Example: 'Kitchen', 'Professor Plum', 'Candlestick'.")
-                    room = self.get_input("Enter the room: ")
-                    character = self.get_input("Enter the character: ")
-                    weapon = self.get_input("Enter the weapon: ")
+
+                    accuse_rooms = [card.name for card in self.available_choices if card.card_type == 'room']
+                    accuse_characters = [card.name for card in self.available_choices if card.card_type == 'character']
+                    accuse_weapons = [card.name for card in self.available_choices if card.card_type == 'weapon']
+                    
+                    print(f"Available rooms: {', '.join(accuse_rooms)}")
+                    print(f"Available characters: {', '.join(accuse_characters)}")
+                    print(f"Available weapons: {', '.join(accuse_weapons)}")
+                    
+                    lowercase_accuse_characters = [character.lower() for character in accuse_characters]
+                    lowercase_accuse_weapons = [weapons.lower() for weapons in accuse_weapons]
+                    lowercase_accuse_rooms = [weapons.lower() for weapons in accuse_rooms]
+
+                    room = None
+                    while room not in lowercase_accuse_rooms:
+                        room = self.get_input("Enter the room: ")
+                        if room not in lowercase_accuse_rooms:
+                            print(f"You must enter a room that is available: {', '.join(accuse_rooms)}")
+
+                    character = None
+                    while character not in lowercase_accuse_characters:
+                        character = self.get_input("Enter the character: ")
+                        if character not in lowercase_accuse_characters:
+                            print(f"You must enter a character that is available: {', '.join(accuse_characters)}")
+
+                    weapon = None
+                    while weapon not in lowercase_accuse_weapons:
+                        weapon = self.get_input("Enter the weapon: ")
+                        if weapon not in lowercase_accuse_weapons:
+                            print(f"You must enter a weapon that is available: {', '.join(accuse_weapons)}")
+
                     accusation = current_player.make_accusation(room, character, weapon, self.solution)
-                    print(accusation)
                     if accusation[-1] == "correct":
                         print(f"{current_player.name} has won the game with the correct accusation!")
+                        print("""
+                                                                                                              
+  ██╗   ██╗ ██████╗ ██╗   ██╗    ██╗    ██╗██╗███╗   ██╗ ██╗██╗
+  ╚██╗ ██╔╝██╔═══██╗██║   ██║    ██║    ██║██║████╗  ██║ ██║██║
+   ╚████╔╝ ██║   ██║██║   ██║    ██║ █╗ ██║██║██╔██╗ ██║ ██║██║
+    ╚██╔╝  ██║   ██║██║   ██║    ██║███╗██║██║██║╚██╗██║ ╚═╝╚═╝
+     ██║   ╚██████╔╝╚██████╔╝    ╚███╔███╔╝██║██║ ╚████║ ██║██║
+     ╚═╝    ╚═════╝  ╚═════╝      ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═╝╚═╝
+
+                              """)
                         game_over = True
                     else:
                         print(f"{current_player.name}'s accusation was incorrect. They are eliminated from the game.")
                         current_player.move(None, None)
+                        self.num_players_elim += 1
                         self.update_visualization()
                         valid_move = True
 
@@ -283,8 +319,13 @@ class GameManager:
                 else:
                     print("Invalid action. Please enter 'move', 'suggest', 'accuse', 'secret', or 'quit'.")
                     continue
-
-            current_player_index = (current_player_index + 1) % len(self.players)
+            if len(self.players) == self.num_players_elim:
+                print(f"No players remain, the game is over.")
+                print(f"The solution was Room: {self.solution.room}, Character: {self.solution.character}, Weapon: {self.solution.weapon}")
+                print(f"Thanks for playing, better luck next time!")
+                exit()
+            else:
+                current_player_index = (current_player_index + 1) % len(self.players)
 
     def get_coordinates(self, position):
         if position is None:
