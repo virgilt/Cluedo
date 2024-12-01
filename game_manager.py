@@ -214,14 +214,14 @@ class GameManager:
                             if weapon not in lowercase_weapons:
                                 print(f"You must enter a weapon that is available: {', '.join(available_weapons)}")
 
-                        suggestion = current_player.make_suggestion(current_player.current_position.name, character, weapon)
+                        suggestion = current_player.make_suggestion(current_player.current_position.name.lower(), character, weapon)
                         print(f"{current_player.name} suggests: {suggestion}")
 
                         disproved = False
                         for other_player in self.players:
                             if other_player != current_player:
                                 for card in other_player.cards:
-                                    if card.name.lower() in [character, weapon, current_player.current_position.name]:
+                                    if card.name.lower() in [character, weapon, current_player.current_position.name.lower()]:
                                         print(f"{other_player.name} can disprove the suggestion with the card: {card.name}")
                                         disproved = True
                                         current_player.add_card(card)
