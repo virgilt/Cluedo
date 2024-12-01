@@ -247,6 +247,9 @@ class GameManager:
                         game_over = True
                     else:
                         print(f"{current_player.name}'s accusation was incorrect. They are eliminated from the game.")
+                        current_player.move(None, None)
+                        self.update_visualization()
+                        valid_move = True
 
                 elif action == 'secret':
                     print("To use a secret passage, you must be in a room with a secret passage and roll an even number.")
