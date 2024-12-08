@@ -2,13 +2,15 @@ import random
 
 class Card:
     def __init__(self, name, card_type):
+        # Initializes a card with a name and type (character, weapon, or room).
         self.name = name
         self.card_type = card_type
 
     def __repr__(self):
+        # Provides a string representation of the card for debugging.
         return f"Card({self.name}, Type: {self.card_type})"
 
-# Example setup for cards
+# Creates a deck of Cluedo cards categorized by characters, weapons, and rooms.
 def create_card_deck():
     characters = ["Miss Scarlet", "Colonel Mustard", "Mrs. White", "Mr. Green", "Mrs. Peacock", "Professor Plum"]
     weapons = ["Knife", "Candlestick", "Revolver", "Rope", "Lead Pipe", "Wrench"]
@@ -34,7 +36,6 @@ def distribute_cards(players, cards):
     for i, card in enumerate(cards):
         players[i % num_players].add_card(card)
 
-# Example usage
 if __name__ == "__main__":
     from player import Player
 
